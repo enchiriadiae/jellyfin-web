@@ -22,7 +22,7 @@ npm run build:production
 ### 2. Verify the build
 Check that the relevant chunk contains the expected changes:
 ```bash
-grep -o "PrimaryImageAspectRatio,MediaSourceCount,Chapters[^\"']*" dist/39469.*.chunk.js
+grep -ro "PrimaryImageAspectRatio,MediaSourceCount,Chapters[^\"']*" dist/39469.*.chunk.js
 # Expected: PrimaryImageAspectRatio,MediaSourceCount,Chapters,Trickplay,People
 ```
 
