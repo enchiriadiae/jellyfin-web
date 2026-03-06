@@ -1,14 +1,28 @@
 # Show Composer in Song/Track List View
 
-## Summary
+## Quick Reference – Changed Files
 
+| File | Layer | Change |
+|------|-------|--------|
+| `src/controllers/itemDetails/index.js` | Fetch | `People` added to Fields |
+| `src/controllers/music/songs.js` | Fetch | `People` added to Fields |
+| `src/scripts/playlistViewer.js` | Fetch | `People` added to Fields, `composer: true` added |
+| `src/apps/experimental/components/library/ItemsView.tsx` | Fetch + Render | `People` added, `showComposer: true` added |
+| `src/utils/items.ts` | Fetch | `ItemFields.People` added for Songs view |
+| `src/components/common/textLines/types.ts` | Render | `composer` type definition added |
+| `src/components/common/textLines/useTextLines.tsx` | Render | composer logic added |
+| `src/components/listview/List/ListItemBody.tsx` | Render | composer name rendered |
+| `src/components/listview/listview.js` | Render | `composer: true` option added |
+
+---
+
+## Summary
 This change adds composer display to the song list view in Jellyfin Web.
 When browsing an album's track list, the composer's name now appears below
 the track title — but only for tracks where composer metadata is available
 in the audio file's ID3/tags.
 
 ## Background
-
 Jellyfin populates the `People` array for audio items exclusively from the
 `COMPOSER` tag embedded in the audio file itself. It does **not** derive
 composer information from album-level metadata or library-level artist
@@ -25,7 +39,6 @@ This behavior is intentional and correct: the feature gracefully degrades.
 No composer tag → no composer shown. No false positives.
 
 ## Root Cause
-
 The `People` field was never requested from the Jellyfin API for audio
 items. Even though the display logic (`useTextLines.tsx`, `listview.js`)
 already contained composer-rendering code, the data never arrived from
@@ -37,19 +50,16 @@ Songs view.
 ## Changes
 
 ### `src/utils/items.ts`
-
 Added `ItemFields.People` to the API fields requested for `LibraryTab.Songs`:
 ```typescript
 if (viewType === LibraryTab.Songs) {
     itemFields.push(ItemFields.People);
 }
 ```
-
 Without this, the server response never includes `People` data for audio
 items, regardless of what the frontend tries to render.
 
 ### `src/apps/experimental/components/library/ItemsView.tsx`
-
 Added `showComposer: true` to the list options for the Songs view:
 ```typescript
 if (viewType === LibraryTab.Songs) {
@@ -63,7 +73,6 @@ if (viewType === LibraryTab.Songs) {
 ```
 
 ## How It Works
-
 The data flow end-to-end:
 ```
 Audio file (ID3 COMPOSER tag)
@@ -74,13 +83,11 @@ Audio file (ID3 COMPOSER tag)
 ```
 
 ## Scope
-
-- **Affected view:** Songs list (ListView mode in music libraries)
-- **Not affected:** Albums, Artists, Movies, Episodes, or any other view
+- **Affected views:** Songs list, Album tracklist, Playlist viewer, Experimental UI
+- **Not affected:** Movies, Episodes, or any non-music view
 - **Prerequisite:** Audio files must carry a `COMPOSER` ID3/metadata tag
 
 ## Testing
-
 Verified against Jellyfin 10.11.6 with a classical music library:
 
 | Scenario | Result |
@@ -91,7 +98,10 @@ Verified against Jellyfin 10.11.6 with a classical music library:
 | Movie/Episode view | ✅ Unaffected |
 
 ## Notes
-
 This feature is particularly useful for classical music libraries, where
 the performing artist and the composer are different people — a distinction
 that mainstream music players often ignore.
+
+---
+
+*Analysis, debugging and syntactical support by [Claude AI](https://claude.ai) (Anthropic).*
