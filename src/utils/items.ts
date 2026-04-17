@@ -80,10 +80,6 @@ const getItemFieldsEnum = (
 ) => {
     const itemFields: ItemFields[] = [];
 
-    if (viewType === LibraryTab.Songs || viewType === LibraryTab.Playlists) {
-        itemFields.push(ItemFields.People);
-    }
-
     if (viewType !== LibraryTab.Networks) {
         itemFields.push(ItemFields.MediaSourceCount);
     }
@@ -99,6 +95,9 @@ const getItemFieldsEnum = (
         );
     }
 
+    if (viewType === LibraryTab.Songs) {
+        itemFields.push(ItemFields.People);
+    }
     return itemFields;
 };
 
@@ -161,7 +160,7 @@ export const getDefaultSortBy = (viewType: LibraryTab) => {
 export const getDefaultLibraryViewSettings = (viewType: LibraryTab): LibraryViewSettings => {
     return {
         ShowTitle: true,
-        ShowYear: true,
+        ShowYear: false,
         ViewMode: viewType === LibraryTab.Songs ? ViewMode.ListView : ViewMode.GridView,
         ImageType: viewType === LibraryTab.Networks ? ImageType.Thumb : ImageType.Primary,
         CardLayout: false,

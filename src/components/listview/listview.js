@@ -4,13 +4,7 @@
  * @module components/listview/listview
  */
 
-import DOMPurify from 'dompurify';
 import escapeHtml from 'escape-html';
-import markdownIt from 'markdown-it';
-
-import { ItemAction } from 'constants/itemAction';
-
-import { getDefaultBackgroundClass } from '../cardbuilder/cardBuilderUtils';
 import itemHelper from '../itemHelper';
 import mediaInfo from '../mediainfo/mediainfo';
 import indicators from '../indicators/indicators';
@@ -19,10 +13,12 @@ import globalize from '../../lib/globalize';
 import { ServerConnections } from 'lib/jellyfin-apiclient';
 import datetime from '../../scripts/datetime';
 import cardBuilder from '../cardbuilder/cardBuilder';
-
 import './listview.scss';
 import '../../elements/emby-ratingbutton/emby-ratingbutton';
 import '../../elements/emby-playstatebutton/emby-playstatebutton';
+import { getDefaultBackgroundClass } from '../cardbuilder/cardBuilderUtils';
+import markdownIt from 'markdown-it';
+import DOMPurify from 'dompurify';
 
 function getIndex(item, options) {
     if (options.index === 'disc') {
@@ -169,7 +165,7 @@ function getRightButtonsHtml(options) {
     for (let i = 0, length = options.rightButtons.length; i < length; i++) {
         const button = options.rightButtons[i];
 
-        html += `<button is="paper-icon-button-light" class="listItemButton itemAction" data-action="${ItemAction.Custom}" data-customaction="${button.id}" title="${button.title}"><span class="material-icons ${button.icon}" aria-hidden="true"></span></button>`;
+        html += `<button is="paper-icon-button-light" class="listItemButton itemAction" data-action="custom" data-customaction="${button.id}" title="${button.title}"><span class="material-icons ${button.icon}" aria-hidden="true"></span></button>`;
     }
 
     return html;
@@ -179,7 +175,7 @@ export function getListViewHtml(options) {
     const items = options.items;
 
     let groupTitle = '';
-    const action = options.action || ItemAction.Link;
+    const action = options.action || 'link';
 
     const isLargeStyle = options.imageSize === 'large';
     const enableOverview = options.enableOverview;
@@ -281,7 +277,7 @@ export function getListViewHtml(options) {
                 imageClass += ' itemAction';
             }
 
-            const imageAction = playOnImageClick ? ItemAction.Link : action;
+            const imageAction = playOnImageClick ? 'link' : action;
 
             if (imgUrl) {
                 html += '<div data-action="' + imageAction + '" class="' + imageClass + ' lazy" data-src="' + imgUrl + '" item-icon>';
@@ -302,7 +298,7 @@ export function getListViewHtml(options) {
             }
 
             if (playOnImageClick) {
-                html += `<button is="paper-icon-button-light" class="listItemImageButton itemAction" data-action="${ItemAction.Resume}" title="${globalize.translate('Play')}"><span class="material-icons listItemImageButton-icon play_arrow" aria-hidden="true"></span></button>`;
+                html += '<button is="paper-icon-button-light" class="listItemImageButton itemAction" data-action="resume"><span class="material-icons listItemImageButton-icon play_arrow" aria-hidden="true"></span></button>';
             }
 
             const progressHtml = indicators.getProgressBarHtml(item, {
@@ -390,13 +386,12 @@ export function getListViewHtml(options) {
             }
         }
 
-        if (options.composer && item.People) {
-            const composers = item.People.filter((p) => p.Type === 'Composer');
-            if (composers.length) {
-                textlines.push(composers.map((c) => c.Name).join(', '));
+        if (options.composer) {
+            const composerPerson = (item.People || []).find(p => p.Type === 'Composer');
+            if (composerPerson && composerPerson.Name) {
+                textlines.push(composerPerson.Name);
             }
         }
-
         if (item.Type === 'TvChannel' && item.CurrentProgram) {
             textlines.push(itemHelper.getDisplayName(item.CurrentProgram));
         }
@@ -460,11 +455,11 @@ export function getListViewHtml(options) {
 
         if (!clickEntireItem) {
             if (options.addToListButton) {
-                html += `<button is="paper-icon-button-light" class="listItemButton itemAction" data-action="${ItemAction.AddToPlaylist}" title="${globalize.translate('AddToPlaylist')}"><span class="material-icons playlist_add" aria-hidden="true"></span></button>`;
+                html += '<button is="paper-icon-button-light" class="listItemButton itemAction" data-action="addtoplaylist"><span class="material-icons playlist_add" aria-hidden="true"></span></button>';
             }
 
             if (options.infoButton) {
-                html += `<button is="paper-icon-button-light" class="listItemButton itemAction" data-action="${ItemAction.Link}" title="${globalize.translate('ButtonInfo')}"><span class="material-icons info_outline" aria-hidden="true"></span></button>`;
+                html += '<button is="paper-icon-button-light" class="listItemButton itemAction" data-action="link"><span class="material-icons info_outline" aria-hidden="true"></span></button>';
             }
 
             if (options.rightButtons) {
@@ -485,7 +480,7 @@ export function getListViewHtml(options) {
             }
 
             if (options.moreButton !== false) {
-                html += `<button is="paper-icon-button-light" class="listItemButton itemAction" data-action="${ItemAction.Menu}" title="${globalize.translate('ButtonMore')}"><span class="material-icons more_vert" aria-hidden="true"></span></button>`;
+                html += '<button is="paper-icon-button-light" class="listItemButton itemAction" data-action="menu"><span class="material-icons more_vert" aria-hidden="true"></span></button>';
             }
         }
         html += '</div>';
@@ -509,5 +504,5 @@ export function getListViewHtml(options) {
 }
 
 export default {
-    getListViewHtml
+    getListViewHtml: getListViewHtml
 };
